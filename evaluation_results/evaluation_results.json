@@ -1,0 +1,18 @@
+{
+  "beta_mean": 1224.268310546875,
+  "beta_std": 177.11134338378906,
+  "beta_min": 1012.5556640625,
+  "beta_max": 1768.3837890625,
+  "ppl_mean": 1227.9100341796875,
+  "ppl_std": 132.08453369140625,
+  "chosen_rejected_diff": 149.18701171875,
+  "chosen_rejected_overlap": 0.40000040376633234,
+  "bleu_score": 0.04970787578611782,
+  "rouge_rouge1": 0.4444444444444445,
+  "rouge_rouge2": 0.0,
+  "rouge_rougeL": 0.4444444444444445,
+  "response_length_mean": 3.0,
+  "response_length_std": 0.0,
+  "vocab_diversity": 0.1,
+  "repetition_rate": 0.0
+}
