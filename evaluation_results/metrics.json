@@ -1,0 +1,12 @@
+{
+  "learnable_beta": {
+    "ppl": 108.84997812906902,
+    "human_preference_accuracy": 100.0,
+    "response_quality": 0.0
+  },
+  "fixed_beta": {
+    "ppl": 366.2657012939453,
+    "human_preference_accuracy": 100.0,
+    "response_quality": 0.0
+  }
+}

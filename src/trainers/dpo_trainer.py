@@ -36,6 +36,7 @@ class DPOTrainer:
         use_wandb: bool = True,
     ):
         self.model = model
+        self.tokenizer = model.tokenizer  # 保存tokenizer
         self.train_dataset = train_dataset
         self.eval_dataset = eval_dataset
         self.batch_size = batch_size
@@ -207,11 +208,11 @@ class DPOTrainer:
                 # 计算loss和其他指标
                 outputs = self.model(**batch)
                 
-                # 收集beta值和困惑度
-                all_beta_chosen.append(outputs["beta_chosen"])
-                all_beta_rejected.append(outputs["beta_rejected"])
-                all_ppl_chosen.append(outputs["ppl_chosen"])
-                all_ppl_rejected.append(outputs["ppl_rejected"])
+                # 收集beta值和困惑度（确保是1维张量）
+                all_beta_chosen.append(outputs["beta_chosen"].view(-1))
+                all_beta_rejected.append(outputs["beta_rejected"].view(-1))
+                all_ppl_chosen.append(outputs["ppl_chosen"].view(-1))
+                all_ppl_rejected.append(outputs["ppl_rejected"].view(-1))
                 
                 # 生成文本用于计算生成质量指标
                 gen_outputs = self.model.base_model.generate(

@@ -156,7 +156,7 @@ def main():
     # 合并所有分析结果
     analysis_results = {
         "dataset_info": {
-            "name": args.dataset_name,
+            "name": "mock_dataset" if args.use_mock else args.dataset_name,
             "split": args.split,
             "size": len(prompts),
         },

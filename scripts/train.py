@@ -1,9 +1,15 @@
 import os
 import argparse
 import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer
-from datasets import load_dataset
+from pathlib import Path
 
+# 添加项目根目录到Python路径
+project_root = str(Path(__file__).parent.parent)
+import sys
+sys.path.insert(0, project_root)
+
+from tests.mock.mock_qwen import MockQwenForCausalLM, MockQwenTokenizer
+from tests.mock.mock_dataset import load_dataset
 from src.models.beta_head import BetaHead
 from src.models.dpo_model import DynamicBetaDPOModel
 from src.data.dataset import DPODataset
@@ -13,24 +19,12 @@ def parse_args():
     parser = argparse.ArgumentParser(description="训练Learnable Beta DPO模型")
     
     # 模型参数
-    parser.add_argument("--model_name_or_path", type=str, default="Qwen/Qwen-1_5B",
-                      help="基础模型的名称或路径")
     parser.add_argument("--beta_head_type", type=str, default="linear",
                       choices=["linear", "mlp"], help="BetaHead网络类型")
     parser.add_argument("--hidden_dim", type=int, default=128,
                       help="BetaHead隐藏层维度（当使用MLP时）")
     parser.add_argument("--epsilon", type=float, default=0.1,
                       help="BetaHead的epsilon参数")
-    
-    # 数据参数
-    parser.add_argument("--dataset_name", type=str, default="Anthropic/hh-rlhf",
-                      help="数据集名称")
-    parser.add_argument("--max_length", type=int, default=512,
-                      help="最大序列长度")
-    parser.add_argument("--train_split", type=str, default="train",
-                      help="训练集split名称")
-    parser.add_argument("--eval_split", type=str, default="test",
-                      help="评估集split名称")
     
     # 训练参数
     parser.add_argument("--batch_size", type=int, default=8,
@@ -64,21 +58,9 @@ def main():
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(args.seed)
     
-    # 加载tokenizer和模型
-    tokenizer = AutoTokenizer.from_pretrained(
-        args.model_name_or_path,
-        trust_remote_code=True,
-        padding_side="right",
-    )
-    
-    if tokenizer.pad_token is None:
-        tokenizer.pad_token = tokenizer.eos_token
-    
-    model = AutoModelForCausalLM.from_pretrained(
-        args.model_name_or_path,
-        trust_remote_code=True,
-        device_map="auto",
-    )
+    # 加载mock模型和tokenizer
+    model = MockQwenForCausalLM()
+    tokenizer = MockQwenTokenizer()
     
     # 创建BetaHead
     beta_head = BetaHead(
@@ -93,25 +75,11 @@ def main():
         base_model=model,
         beta_head=beta_head,
         tokenizer=tokenizer,
-        max_length=args.max_length,
     )
     
-    # 加载数据集
-    dataset = load_dataset(args.dataset_name)
-    
-    train_dataset = DPODataset.from_hf_dataset(
-        dataset[args.train_split],
-        tokenizer=tokenizer,
-        max_length=args.max_length,
-    )
-    
-    eval_dataset = None
-    if args.eval_split in dataset:
-        eval_dataset = DPODataset.from_hf_dataset(
-            dataset[args.eval_split],
-            tokenizer=tokenizer,
-            max_length=args.max_length,
-        )
+    # 加载mock数据集
+    train_dataset = load_dataset("mock_dataset", split="train")
+    eval_dataset = load_dataset("mock_dataset", split="test")
     
     # 创建训练器
     trainer = DPOTrainer(

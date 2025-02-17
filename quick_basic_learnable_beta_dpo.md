@@ -6,7 +6,7 @@
 
 **核心创新点：**
 
-本项目采用 **Learnable Beta DPO** 方法，核心在于使用 `BetaHead` 子网络动态地、上下文自适应地调整 DPO 算法中的 $\beta$ 参数。  `BetaHead` 网络结合了上下文的困惑度 (PPL) 和一个可学习的神经网络 $f(x)$，实现对探索-利用平衡的精细控制，期望在 DPO 微调过程中获得更优的性能和更稳定的训练。
+本项目采用 **Learnable Beta DPO** 方法，核心在于使用与策略模型紧密耦合的 `BetaHead` 子网络来动态调整 DPO 算法中的 $\beta$ 参数。`BetaHead` 网络直接利用策略模型的内部表征（最后一层隐状态），结合策略模型计算的困惑度 (PPL)，通过一个轻量级的可学习网络 $f(h_{\pi_\theta}(x))$ 实现对探索-利用平衡的精细控制。这种共享表征的设计不仅提高了计算效率，更重要的是实现了策略模型和 BetaHead 的协同进化，有望在 DPO 微调过程中获得更优的性能和更稳定的训练。
 
 **预期成果：**
 
@@ -34,13 +34,13 @@
 *   **任务:**  根据已有的设计方案，在 `beta_head.py` 文件中实现 `BetaHead` 和 `DynamicBetaDPOModel` 类。
     *   **`BetaHead` 类:**
         *   实现 `__init__` 方法，包括可学习参数 `w` 的初始化，神经网络 `NN(x)` 的构建 (至少实现线性层版本，并预留 MLP 和 Transformer 结构的扩展接口)，以及 `epsilon` 参数的设置。
-        *   实现 `forward(context_embedding, ppl)` 方法，根据公式 $\beta(x) = w \cdot PPL(x) \cdot f(x)$ 计算并返回动态 $\beta$ 值。 确保代码注释清晰，参数可配置。
-        * context_embedding 提取策略: 本项目 默认 采用 取最后一个 token 的 last hidden state 的方法来提取 context_embedding。 这种方法在理论上更符合自回归 Decoder-only 模型的特性，且实践中已被证明有效。 当然，在后续实验中，也可以探索其他 context_embedding 提取策略 (例如平均池化) 并进行比较。
+        *   实现 `forward(context_embedding, ppl)` 方法，根据公式 $\beta(x) = w \cdot PPL(x) \cdot f(x)$ 计算并返回动态 $\beta$ 值。确保代码注释清晰，参数可配置。
+        * context_embedding 提取策略: 本项目默认采用取最后一个 token 的 last hidden state 的方法来提取 context_embedding。这种方法在理论上更符合自回归 Decoder-only 模型的特性，且实践中已被证明有效。当然，在后续实验中，也可以探索其他 context_embedding 提取策略 (例如平均池化) 并进行比较。
     *   **`DynamicBetaDPOModel` 类:**
         *   实现 `__init__(awesome_lm, beta_head)` 方法，接收 `AwesomeLanguageModel` (此处为 Qwen1.5B 模型实例) 和 `BetaHead` 实例作为输入。
         *   实现 `get_dynamic_beta(context_token_ids, attention_mask)` 方法，负责调用 `AwesomeLanguageModel` 计算 PPL 和 context embedding，并将结果传递给 `BetaHead` 计算动态 $\beta$。
         *   实现 `forward_lm(context_token_ids, attention_mask)` 方法，直接调用 `AwesomeLanguageModel` 的 forward 函数，返回 logits。
-*   **交付标准:**  提供 `beta_head.py` 文件，包含完整、可运行的 `BetaHead` 和 `DynamicBetaDPOModel` 代码。 代码风格符合 PEP 8 规范，注释清晰。
+*   **交付标准:**  提供 `beta_head.py` 文件，包含完整、可运行的 `BetaHead` 和 `DynamicBetaDPOModel` 代码。代码风格符合 PEP 8 规范，注释清晰。
 
 **3.  Qwen1.5B 模型集成:**
 
