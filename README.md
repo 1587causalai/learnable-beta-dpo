@@ -49,6 +49,7 @@ $$f(x) = 1 + \epsilon \cdot \tanh(NN(h_{\pi_\theta}(x)))$$
 - `docs/testing_and_tools.md` - 测试和工具使用指南
 - `docs/proposals/combined_sft_dpo.md` - 结合 SFT 和 DPO 的方法提案
 - `docs/survey/rainbowpo.md` - Rainbowpo 统一偏好优化改进框架综述
+- `docs/survey/mallowspo.md` - MallowsPO 基于偏好分散的优化方法泛读笔记
 - `information_fusion.md` - 信息融合角度解析 DPO
 - `quick_basic_learnable_beta_dpo.md` - Learnable Beta DPO 快速入门
 
