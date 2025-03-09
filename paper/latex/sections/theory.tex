@@ -1,0 +1,50 @@
+\subsection{标准DPO回顾}
+标准DPO的理论基础是Bradley-Terry模型，用于建模成对偏好关系。对于给定上下文$x$和模型输出对$(y_w, y_l)$（winner vs. loser），Bradley-Terry模型假设$y_w$比$y_l$更受偏好的概率为：
+
+\begin{equation}
+P(\text{winner} = y_w | x, y_w, y_l) = \frac{\exp(r(x, y_w))}{\exp(r(x, y_w)) + \exp(r(x, y_l))}
+\end{equation}
+
+其中$r(x, y)$代表模型输出$y$在上下文$x$下的奖励值。DPO的目标是在不显式学习奖励函数$r(x, y)$的前提下，直接优化策略模型$\pi_\theta(y|x)$。
+
+基于最大似然估计，并假设奖励函数$r(x, y)$与策略模型$\pi_\theta(y|x)$和参考策略$\pi_{\text{ref}}(y|x)$的对数比值成正比：
+
+\begin{equation}
+r(x, y) = \beta \log \frac{\pi_\theta(y|x)}{\pi_{\text{ref}}(y|x)}
+\end{equation}
+
+将上述奖励函数代入负对数似然损失函数并简化，得到标准DPO Loss函数：
+
+\begin{equation}
+\mathcal{L}_{\text{DPO}}(\theta) = - \mathbb{E}_{(x, y_w, y_l) \sim \mathcal{D}} \left[ \log \sigma \left( \beta \left[ \log \frac{\pi_\theta(y_w|x)}{\pi_{\text{ref}}(y_w|x)} - \log \frac{\pi_\theta(y_l|x)}{\pi_{\text{ref}}(y_l|x)} \right] \right) \right]
+\end{equation}
+
+其中$\sigma(z) = (1 + e^{-z})^{-1}$为sigmoid函数，$\mathcal{D}$为偏好数据集。
+
+\subsection{固定$\beta$的局限性}
+在标准DPO中，$\beta$是一个全局固定的超参数，它控制着模型在参考策略和奖励信息之间的权衡。从优化角度看，$\beta$值的选择至关重要：
+
+\begin{itemize}
+    \item 当$\beta$过大时，模型过度依赖参考策略$\pi_{\text{ref}}$，难以充分学习人类偏好
+    \item 当$\beta$过小时，模型过度利用奖励信息，可能偏离参考策略太远，导致训练不稳定或出现退化行为
+\end{itemize}
+
+固定$\beta$的主要局限在于其无法适应不同输入上下文的需求。在实际应用中，对于模型熟悉的领域（如日常对话），参考策略通常已经具有良好的性能，此时应采用较大的$\beta$值以保持原有能力；而对于棘手的任务（如复杂推理），参考策略的表现可能较差，此时应采用较小的$\beta$值以更多地从人类偏好中学习。固定的$\beta$无法实现这种细粒度的控制，导致整体优化效率受限。
+
+\subsection{信息融合视角下的DPO解析}
+我们从信息融合的角度重新解析DPO算法。在DPO中，策略模型$\pi_\theta$需要融合两种信息来源：
+
+\begin{itemize}
+    \item 参考策略$\pi_{\text{ref}}$中包含的先验知识（作为信息源1）
+    \item 偏好数据集$\mathcal{D}$中包含的人类偏好（作为信息源2）
+\end{itemize}
+
+从这一视角看，$\beta$参数实际上控制着两种信息源的相对权重。当两种信息存在冲突时，$\beta$决定了模型更倾向于遵循哪一种信息。通过贝叶斯信息融合理论，我们可以将DPO的优化目标重写为：
+
+\begin{equation}
+\pi_\theta^* = \arg\min_{\pi_\theta} \left[ (1-\lambda) \cdot D_{KL}(\pi_\theta || \pi_{\text{ref}}) - \lambda \cdot \mathbb{E}_{(x, y_w, y_l) \sim \mathcal{D}} [\log P(y_w \succ y_l | x, \pi_\theta)] \right]
+\end{equation}
+
+其中$\lambda = \frac{1}{1+\beta}$是一个归一化的权重因子。当$\lambda$接近0（$\beta$很大）时，模型主要学习参考策略；当$\lambda$接近1（$\beta$很小）时，模型主要学习人类偏好。
+
+这种信息融合视角启发我们：理想的$\beta$值应该是与输入上下文$x$相关的函数$\beta(x)$，而非全局固定的常数。 

@@ -1,0 +1,21 @@
+\subsection{研究背景与意义}
+Direct Preference Optimization (DPO) \cite{rafailov2023direct} 作为一种直接优化语言模型以对齐人类偏好的新兴算法，因其简洁高效而备受关注。相较于传统强化学习方法，DPO 避免了复杂的奖励建模和策略迭代，通过直接比较模型对 chosen 和 rejected 样本的输出进行优化。然而，标准 DPO 采用固定的超参数 $\beta$ 来平衡参考策略和偏好学习，这限制了其在复杂场景下的优化潜力。
+
+固定 $\beta$ 的局限主要体现在两个方面：1）上下文不敏感性，无法适应不同输入上下文的需求；2）优化效率瓶颈，"一刀切"的 $\beta$ 值可能导致在某些情境下学习保守而错失优化机会，或在另一些情境下学习激进而损害已有能力。本研究旨在克服这些局限，提出一种更具泛化能力的 DPO 变体。
+
+\subsection{相关工作}
+近年来，大型语言模型的人类偏好对齐研究取得了显著进展。RLHF（Reinforcement Learning from Human Feedback）\cite{ouyang2022training, christiano2017deep}作为一种主流方法，通过人类反馈训练奖励模型，然后使用强化学习优化语言模型的行为。然而，RLHF存在奖励模型训练复杂、强化学习优化不稳定等问题。
+
+DPO \cite{rafailov2023direct} 提出了一种更直接的偏好优化方法，将奖励学习和策略优化融合为一个步骤，显著简化了训练流程。此后，诸多研究者在DPO的基础上提出了各种改进，如 KTO \cite{kassner2023kto}、IPO \cite{azar2023general}等，但这些方法仍然使用固定的 $\beta$ 值来平衡参考策略和偏好学习。
+
+在自适应参数学习方面，相关研究主要集中在学习率自适应\cite{zou2021sufficient, smith2017cyclical}和正则化强度自适应\cite{pan2020adaptive}等方向，但将这一思路应用于DPO算法中的探索还相对缺乏。
+
+\subsection{本文贡献}
+本文的主要贡献包括：
+
+\begin{itemize}
+    \item 从信息融合的角度重新诠释了DPO算法，将其视为参考策略信息与人类偏好信息的融合过程，提供了理解$\beta$参数作用的新视角。
+    \item 提出了Learnable Beta DPO算法，设计了与策略模型紧密耦合的BetaHead网络，能够根据输入上下文自适应地调整$\beta$值。
+    \item 基于Qwen-1.5B模型实现了完整的Learnable Beta DPO微调流程，并通过大量实验验证了其有效性。
+    \item 通过消融实验深入分析了动态$\beta$计算中各组件的作用，为理解自适应$\beta$的工作机制提供了洞见。
+\end{itemize} 

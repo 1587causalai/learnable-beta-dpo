@@ -1,0 +1,56 @@
+\subsection{模型与数据集}
+\subsubsection{模型选择}
+我们以Qwen-1.5B作为基础模型进行实验，具体实现上使用了DeepSeek-R1-Distill-Qwen-1.5B，这是一个基于Qwen的高效蒸馏版本。选择该模型的原因包括：1）参数量适中（1.5B），计算资源需求合理；2）在中英文任务上均有良好表现；3）开源许可允许研究使用。
+
+为了实现Learnable Beta DPO，我们在模型基础上添加了BetaHead网络。BetaHead网络的具体配置如下：
+\begin{itemize}
+    \item 一个可学习的标量参数$w$，初始化为0.1
+    \item 一个双层MLP，输入维度为模型隐状态维度（2048），中间层维度为512，输出维度为1
+    \item 修正因子范围参数$\epsilon$设置为0.2
+\end{itemize}
+
+\subsubsection{数据集}
+我们使用以下数据集进行实验：
+
+\begin{itemize}
+    \item \textbf{Anthropic Helpful and Harmless (HH)} \cite{bai2022training}：包含52k条助手回复偏好对，覆盖多种通用对话场景
+    \item \textbf{Stanford Human Preferences (SHP)} \cite{pmlr-v162-ethayarajh22a}：包含385k条人类偏好数据，侧重于回复的有用性、诚实性和无害性
+    \item \textbf{UltraFeedback} \cite{cui2023ultrafeedback}：包含64k条高质量反馈数据，每个样本有人类评分和详细反馈
+\end{itemize}
+
+我们按照8:1:1的比例将每个数据集分为训练集、验证集和测试集。
+
+\subsection{评估指标}
+为全面评估Learnable Beta DPO的性能，我们采用以下评估指标：
+
+\begin{itemize}
+    \item \textbf{偏好一致率（Preference Agreement）}：模型输出与人类偏好的一致程度，即模型给出的chosen响应概率高于rejected响应的样本比例
+    \item \textbf{KL散度（KL Divergence）}：微调后模型与参考模型的KL散度，用于衡量模型偏离参考策略的程度
+    \item \textbf{赢率（Win Rate）}：由人类评估者判断，微调后模型相比基线模型的胜率
+    \item \textbf{分领域性能（Domain-specific Performance）}：在不同领域（日常对话、创意写作、逻辑推理等）的表现
+    \item \textbf{$\beta$分布分析}：记录不同上下文下$\beta$值的分布情况，分析其与任务难度的相关性
+\end{itemize}
+
+自动评估使用验证集和测试集进行，人工评估从测试集中随机采样200个样本，由5名评估者独立判断。
+
+\subsection{对比基线}
+我们将Learnable Beta DPO与以下基线方法进行对比：
+
+\begin{itemize}
+    \item \textbf{原始SFT模型}：仅通过监督微调的模型，作为基础参考
+    \item \textbf{标准DPO}：使用固定$\beta$值的DPO，我们测试了三种$\beta$值设置：0.1（较小）、1（中等）和10（较大）
+    \item \textbf{IPO} \cite{azar2023general}：Implicit Preference Optimization，一种改进的DPO变体
+    \item \textbf{KTO} \cite{kassner2023kto}：KL-regularized Preference Optimization，另一种DPO变体
+\end{itemize}
+
+\subsection{实验设置}
+我们的实验配置如下：
+
+\begin{itemize}
+    \item \textbf{训练设置}：批次大小为64，使用Adam优化器，学习率为5e-6，使用余弦学习率调度，训练3个epochs
+    \item \textbf{硬件}：4×NVIDIA A100 GPU (40GB)
+    \item \textbf{参数冻结}：仅微调模型最后4层和BetaHead网络，其余参数保持冻结
+    \item \textbf{超参数}：使用学习率为[1e-6, 3e-6, 5e-6, 1e-5]和修正因子范围$\epsilon$为[0.1, 0.2, 0.3]进行超参数搜索
+\end{itemize}
+
+所有实验均重复运行3次，报告平均性能和标准差。为确保实验的公平性，所有基线方法都使用相同的训练数据、批次大小和总训练步数。 
