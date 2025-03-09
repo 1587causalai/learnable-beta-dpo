@@ -1,4 +1,4 @@
-\documentclass[conference]{IEEEtran}
+\documentclass[11pt,a4paper]{article}
 \usepackage{cite}
 \usepackage{amsmath,amssymb,amsfonts}
 \usepackage{graphicx}
@@ -6,15 +6,24 @@
 \usepackage{hyperref}
 \usepackage{booktabs}
 \usepackage{CJKutf8}
+\usepackage[margin=1in]{geometry}
+\usepackage{authblk}
+\usepackage{titlesec}
+
+\titleformat{\section}{\normalfont\large\bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}{\normalfont\normalsize\bfseries}{\thesubsection}{1em}{}
+
+\renewcommand{\thesection}{\arabic{section}}
+\renewcommand{\thesubsection}{\thesection.\arabic{subsection}}
 
 \begin{document}
 \begin{CJK}{UTF8}{gbsn}
 
 \title{可学习Beta值的DPO算法研究：自适应探索-利用平衡的新方法}
 
-\author{\IEEEauthorblockN{作者名}
-\IEEEauthorblockA{机构\\
-邮箱}}
+\author[1]{作者名}
+\affil[1]{机构\\邮箱}
+\date{\today}
 
 \maketitle
 
@@ -22,9 +31,8 @@
 本文提出了一种创新的Direct Preference Optimization (DPO)算法变体——Learnable Beta DPO，通过引入动态可学习的β参数来实现对探索-利用平衡的自适应控制。传统DPO算法使用固定的β超参数来平衡参考策略和偏好学习，这限制了其在复杂多变场景下的优化潜力。我们设计了一个与策略模型紧密耦合的BetaHead网络，能够根据输入上下文动态调整β值，从而在模型熟悉的领域保持保守学习策略，在不熟悉的领域加大探索力度。实验结果表明，Learnable Beta DPO相比固定β的标准DPO，在性能、泛化能力和样本效率方面均有显著提升。
 \end{abstract}
 
-\begin{IEEEkeywords}
+\section*{关键词}
 Direct Preference Optimization, 大语言模型, 人类偏好对齐, 自适应学习, 信息融合
-\end{IEEEkeywords}
 
 \section{引言}
 \input{sections/introduction}
@@ -44,7 +52,7 @@ Direct Preference Optimization, 大语言模型, 人类偏好对齐, 自适应�
 \section{结论与未来工作}
 \input{sections/conclusion}
 
-\bibliographystyle{IEEEtran}
+\bibliographystyle{plain}
 \bibliography{references}
 
 \end{CJK}
