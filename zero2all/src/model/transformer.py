@@ -24,14 +24,29 @@ class TransformerLayer(nn.Module):
         attention_dropout=0.0,
         use_dual_chunk=False,
         max_position_embeddings=32768,
+        attention_type="gqa",  # 可选: "mhsa", "gqa", "dualchunk"
     ):
         super().__init__()
         
         # 第一个层归一化
         self.norm1 = nn.LayerNorm(hidden_size, eps=layer_norm_eps)
         
-        # 注意力层
-        if use_dual_chunk:
+        # 选择注意力机制类型
+        self.attention_type = attention_type
+        
+        if attention_type == "mhsa":
+            # 标准多头自注意力
+            from .attention import MultiHeadAttention
+            self.attention = MultiHeadAttention(
+                hidden_size=hidden_size,
+                num_heads=num_q_heads,
+                head_dim=head_dim,
+                dropout=attention_dropout,
+                max_position_embeddings=max_position_embeddings,
+            )
+        elif attention_type == "dualchunk" or use_dual_chunk:
+            # 双块注意力
+            from .attention import DualChunkAttention
             self.attention = DualChunkAttention(
                 hidden_size=hidden_size,
                 num_q_heads=num_q_heads,
@@ -41,6 +56,8 @@ class TransformerLayer(nn.Module):
                 max_position_embeddings=max_position_embeddings,
             )
         else:
+            # 默认使用分组查询注意力
+            from .attention import GroupedQueryAttention
             self.attention = GroupedQueryAttention(
                 hidden_size=hidden_size,
                 num_q_heads=num_q_heads,
@@ -135,6 +152,7 @@ class QwenTransformer(nn.Module):
         eos_token_id=2,
         initializer_range=0.02,
         use_cache=True,
+        attention_type="gqa",  # 可选: "mhsa", "gqa", "dualchunk"
     ):
         super().__init__()
         
@@ -157,6 +175,7 @@ class QwenTransformer(nn.Module):
         self.eos_token_id = eos_token_id
         self.initializer_range = initializer_range
         self.use_cache = use_cache
+        self.attention_type = attention_type
         
         # 词嵌入
         self.embedding = nn.Embedding(vocab_size, hidden_size)
@@ -175,6 +194,7 @@ class QwenTransformer(nn.Module):
                 attention_dropout=attention_dropout,
                 use_dual_chunk=use_dual_chunk,
                 max_position_embeddings=max_position_embeddings,
+                attention_type=attention_type,
             )
             for _ in range(num_hidden_layers)
         ])
