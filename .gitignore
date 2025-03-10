@@ -1,0 +1,19 @@
+# python
+__pycache__
+*.pyc
+
+# venv
+venv
+
+# vscode
+.vscode
+
+# macos
+.DS_Store
+
+# data
+data/
+
+# logs
+logs/
+
