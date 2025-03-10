@@ -1,0 +1,11 @@
+---
+description: 项目结构
+globs: 
+alwaysApply: false
+---
+
+# 项目结构
+
+- latex: 论文写作 latex 文件
+- prelim: 各种该研究有关预备知识
+- docs: 分享本研究的思考和发现

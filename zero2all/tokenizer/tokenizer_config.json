@@ -1,0 +1,8 @@
+{
+  "add_prefix_space": false,
+  "special_tokens": {
+    "<pad>": 0,
+    "<bos>": 1,
+    "<eos>": 2
+  }
+}
